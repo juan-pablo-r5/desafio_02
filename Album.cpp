@@ -6,8 +6,9 @@
 #pragma comment(lib, "winmm.lib")
 #include <iostream>
 #include <cstring>
-#include <filesystem>   // <-- 1. INCLUIR ESTO
-#include <stdexcept>    // Para un mejor manejo de errores (opcional pero recomendado)
+#include <filesystem>
+#include <stdexcept>
+#include <random>
 
 using namespace std;
 
@@ -55,7 +56,7 @@ namespace fs = std::filesystem;
 const char* Cancion::getNombre() const {
     static char info[512];
 
-    // Es buena práctica verificar si la ruta no es nula antes de usarla
+
     if (!ruta) {
         snprintf(info, sizeof(info), "Artista: (desconocido) | Cancion: (desconocido) | Album: (desconocido)");
         return info;
@@ -127,10 +128,42 @@ void Album::agregarCancion(const char* nombre, const char* artista, const char* 
     cantidadCanciones++;
 }
 
-void Album::iniciarReproduccion()
-{
-    if (cantidadCanciones > 0 && actual >= 0 && actual < cantidadCanciones) {
-        reproducir(); // Simplemente llama a la función que ya tienes
+void Album::iniciarReproduccion(bool random) {
+    if (cantidadCanciones == 0) {
+        cout << "⚠️ No hay canciones para iniciar." << endl;
+        return;
+    }
+
+    if (!random) {
+        // --- MODO SECUENCIAL: Empezar desde el principio ---
+        actual = 0;
+        reproducir();
+
+    } else {
+        // --- MODO ALEATORIO: Elegir una favorita al azar para empezar ---
+
+        // 1. Encontrar todas las canciones favoritas.
+        std::vector<int> indicesFavoritas;
+        for (int i = 0; i < cantidadCanciones; ++i) {
+            if (canciones[i]->esFavorita()) {
+                indicesFavoritas.push_back(i);
+            }
+        }
+
+        if (indicesFavoritas.empty()) {
+            cout << "⚠️ No se encontraron canciones favoritas para iniciar en modo aleatorio." << endl;
+            return;
+        }
+
+        // 2. Elegir una al azar de la lista.
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distrib(0, indicesFavoritas.size() - 1);
+
+        // A diferencia de 'siguienteFavorita', aquí no necesitamos evitar
+        // la canción actual, porque ninguna está sonando.
+        actual = indicesFavoritas[distrib(gen)];
+        reproducir();
     }
 }
 
@@ -150,14 +183,72 @@ void Album::reproducir() {
     mciSendStringA(comando, NULL, 0, NULL);
 
     mciSendStringA("play miCancion", NULL, 0, NULL);
-    cout << "▶ Reproduciendo: " << canciones[actual]->getNombre() << endl;
+    historialReproduccion.push_back(actual);
+    cout << "Reproduciendo: " << canciones[actual]->getNombre() << endl;
 }
 
 void Album::pausar() {
     mciSendStringA("pause miCancion", NULL, 0, NULL);
-    cout << "⏸ Pausando canción..." << endl;
+    cout << "Pausando cancion..." << endl;
 }
 
+void Album::siguienteFavorita(bool random) {
+    if (cantidadCanciones == 0) {
+        cout << "No hay canciones en el álbum." << endl;
+        return;
+    }
+
+    if (!random) {
+        // --- MODO SECUENCIAL (Salto de +1) ---
+        int inicio = actual;
+        do {
+            actual = (actual + 1) % cantidadCanciones;
+            if (canciones[actual]->esFavorita()) {
+                reproducir();
+                return;
+            }
+        } while (actual != inicio);
+
+        cout << "No hay más canciones favoritas." << endl;
+
+    } else {
+        // --- MODO ALEATORIO (Elegir de una lista) ---
+
+        // 1. Primero, creamos una lista con los índices de TODAS las favoritas.
+        std::vector<int> indicesFavoritas;
+        for (int i = 0; i < cantidadCanciones; ++i) {
+            if (canciones[i]->esFavorita()) {
+                indicesFavoritas.push_back(i);
+            }
+        }
+
+        if (indicesFavoritas.empty()) {
+            cout << "No se encontraron canciones favoritas." << endl;
+            return;
+        }
+
+        // Si solo hay una favorita, no tiene sentido buscar otra.
+        if (indicesFavoritas.size() == 1) {
+            actual = indicesFavoritas[0];
+            reproducir();
+            return;
+        }
+
+        // 2. Elegimos un nuevo índice al azar de esa lista de favoritas.
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> distrib(0, indicesFavoritas.size() - 1);
+
+        int nuevoIndice;
+        do {
+            // Elegimos un índice aleatorio de nuestra lista de opciones válidas.
+            nuevoIndice = indicesFavoritas[distrib(gen)];
+        } while (nuevoIndice == actual); // Evitamos repetir la misma canción.
+
+        actual = nuevoIndice;
+        reproducir();
+    }
+}
 void Album::reanudar() {
     mciSendStringA("resume miCancion", NULL, 0, NULL);
     cout << "▶ Reanudando canción..." << endl;
@@ -197,23 +288,53 @@ void Album::mostrarCanciones() const {
     }
 }
 
-void Album::siguienteFavorita() {
+bool Album::estaReproduciendo() const {
+    char estado[128];
+    // Preguntamos a MCI por el estado del alias "miCancion"
+    mciSendStringA("status miCancion mode", estado, sizeof(estado), NULL);
+
+    // Si el estado es "playing", la función strcmp devuelve 0
+    return strcmp(estado, "playing") == 0;
+}
+
+void Album::atrasFavorita(bool random) {
     if (cantidadCanciones == 0) {
         cout << "⚠️ No hay canciones en el álbum." << endl;
         return;
     }
 
-    int inicio = actual;
-    do {
-        actual = (actual + 1) % cantidadCanciones;
-        if (canciones[actual]->esFavorita()) {
-            reproducir();
+    if (!random) {
+        int inicio = actual;
+        do {
+            // Usamos la fórmula segura para retroceder
+            if(actual!=0){
+            actual = (actual - 1 + cantidadCanciones) % cantidadCanciones;
+            }
+            if (canciones[actual]->esFavorita()) {
+                reproducir();
+                return;
+            }
+        } while (actual != inicio);
+
+        cout << "⚠️ No hay más canciones favoritas." << endl;
+
+    } else {
+
+        if (historialReproduccion.size() < 2) {
+            cout << "⚠️ No hay una canción anterior en el historial." << endl;
             return;
         }
-    } while (actual != inicio);
 
-    cout << "⚠️ No hay más canciones favoritas." << endl;
+        historialReproduccion.pop_back(); // Quitamos la canción actual
+        int indiceAnterior = historialReproduccion.back(); // Obtenemos la anterior
+        historialReproduccion.pop_back(); // La quitamos para no volver a añadirla
+
+        actual = indiceAnterior;
+        reproducir();
+    }
 }
+
+
 void Album::reproducirDesdeArchivo(const char* rutaTxt) {
     FILE* archivo = fopen(rutaTxt, "r");
     if (!archivo) {

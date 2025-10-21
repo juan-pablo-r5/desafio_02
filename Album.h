@@ -33,6 +33,7 @@ private:
     int cantidadCanciones;
     int actual; // índice de la canción actual
     vector<Cancion*> favoritasUsuario;
+    std::vector<int> historialReproduccion;
     int actualFavorita = -1;
 
 public:
@@ -55,6 +56,11 @@ public:
     void reproducirDesdeArchivo(const char* rutaTxt); // Agrega canciones desde archivo y reproduce la primera
     void siguienteFavorita();
     void cargarFavoritasUsuario(const char *rutaFavoritas);
+    void atrasFavorita();
+    void siguienteFavorita(bool random);
+    bool estaReproduciendo() const;
+    void atrasFavorita(bool random);
+    void iniciarReproduccion(bool random);
 };
 
 #endif // ALBUM_H

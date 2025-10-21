@@ -1,2 +1,6 @@
 C:\\Users\\Manuu\\Documents\\spotify\\music_repository\\ACDC\\Highway To Hell\\1.wav
 C:\\Users\\Manuu\\Documents\\spotify\\music_repository\\ACDC\\Highway To Hell\\2.wav
+C:\\Users\\Manuu\\Documents\\spotify\\music_repository\\ACDC\\Highway To Hell\\3.wav
+C:\\Users\\Manuu\\Documents\\spotify\\music_repository\\ACDC\\Highway To Hell\\4.wav
+C:\\Users\\Manuu\\Documents\\spotify\\music_repository\\ACDC\\Highway To Hell\\5.wav
+C:\\Users\\Manuu\\Documents\\spotify\\music_repository\\ACDC\\Highway To Hell\\6.wav
