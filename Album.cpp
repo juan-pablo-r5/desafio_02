@@ -163,7 +163,7 @@ void Album::siguienteFavorita() {
     int inicio = actual;
     do {
         actual = (actual + 1) % cantidadCanciones;
-        if (canciones[actual]->favorita) {
+        if (canciones[actual]->esFavorita()) {
             reproducir();
             return;
         }
@@ -175,14 +175,14 @@ void Album::siguienteFavorita() {
 void Album::reproducirDesdeArchivo(const char* rutaTxt) {
     FILE* archivo = fopen(rutaTxt, "r");
     if (!archivo) {
-        cout << "❌ No se pudo abrir el archivo: " << rutaTxt << endl;
+        cout << "No se pudo abrir el archivo: " << rutaTxt << endl;
         return;
     }
 
     char buffer[1024];
     if (!fgets(buffer, sizeof(buffer), archivo)) {
         fclose(archivo);
-        cout << "❌ El archivo está vacío o tiene error de lectura." << endl;
+        cout << "El archivo está vacío o tiene error de lectura." << endl;
         return;
     }
     fclose(archivo);
@@ -205,11 +205,11 @@ void Album::reproducirDesdeArchivo(const char* rutaTxt) {
                 reproducir();
             }
         } else {
-            cout << "⚠️ No se encontró: " << rutaCompleta << endl;
+            cout << "No se encontró: " << rutaCompleta << endl;
         }
 
         token = strtok(nullptr, ",\n\r");
     }
 
-    cout << "\n✅ Reproducción desde archivo completada.\n";
+    cout << "\nReproducción desde archivo completada.\n";
 }

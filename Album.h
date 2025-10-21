@@ -19,6 +19,7 @@ public:
 
     const char* getNombre() const;
     const char* getRuta() const;
+    bool esFavorita() const { return favorita; }
 };
 
 class Album {

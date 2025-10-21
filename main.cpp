@@ -3,11 +3,11 @@
 using namespace std;
 
 int main() {
-    Album miAlbum("Rock Clásico", "Varios Artistas",
+    Album miAlbum("Rock Clasico", "Varios Artistas",
                   "C:\\Users\\Manuu\\Documents\\spotify\\music_repository");
 
     miAlbum.reproducirDesdeArchivo("C:\\Users\\Manuu\\Documents\\spotify\\favoritas.txt");
-    cout << "\n1. Pausar\n2. Reanudar\n0. Salir\n> ";
+    cout << "\n1. Pausar\n2. Reanudar\n3. Siguiente Cancion\n0. Salir\n> ";
 
     int opcion = -1;
     while (true) {
@@ -25,6 +25,6 @@ int main() {
             cout << "👋 Saliendo del reproductor..." << endl;
             break;
         }
-
+}
     return 0;
 }
