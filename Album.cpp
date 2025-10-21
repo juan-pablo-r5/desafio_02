@@ -6,6 +6,9 @@
 #pragma comment(lib, "winmm.lib")
 #include <iostream>
 #include <cstring>
+#include <filesystem>   // <-- 1. INCLUIR ESTO
+#include <stdexcept>    // Para un mejor manejo de errores (opcional pero recomendado)
+
 using namespace std;
 
 // -------- Clase Cancion ---------
@@ -48,10 +51,40 @@ void Cancion::imprimirInfo() const {
          << (favorita ? " | ★ Favorita" : "") << endl;
 }
 
+namespace fs = std::filesystem;
 const char* Cancion::getNombre() const {
-    return nombre;
-}
+    static char info[512];
 
+    // Es buena práctica verificar si la ruta no es nula antes de usarla
+    if (!ruta) {
+        snprintf(info, sizeof(info), "Artista: (desconocido) | Cancion: (desconocido) | Album: (desconocido)");
+        return info;
+    }
+
+    try {
+        fs::path ruta_path(ruta);
+
+        std::string nombreCancion = ruta_path.stem().string();
+
+        // La ruta del álbum es el directorio padre de la canción
+        fs::path album_path = ruta_path.parent_path();
+        std::string nombreAlbum = album_path.filename().string();
+
+        // La ruta del artista es el directorio padre del álbum
+        fs::path artista_path = album_path.parent_path();
+        std::string nombreArtista = artista_path.filename().string();
+
+        snprintf(info, sizeof(info), "Artista: %s | Cancion: %s | Album: %s",
+                 nombreArtista.c_str(),
+                 nombreCancion.c_str(),
+                 nombreAlbum.c_str());
+
+    } catch (const fs::filesystem_error& e) {
+        snprintf(info, sizeof(info), "Error al procesar la ruta: %s", e.what());
+    }
+
+    return info;
+}
 const char* Cancion::getRuta() const {
     return ruta;
 }
@@ -92,6 +125,13 @@ void Album::agregarCancion(const char* nombre, const char* artista, const char* 
     delete[] canciones;
     canciones = nuevo;
     cantidadCanciones++;
+}
+
+void Album::iniciarReproduccion()
+{
+    if (cantidadCanciones > 0 && actual >= 0 && actual < cantidadCanciones) {
+        reproducir(); // Simplemente llama a la función que ya tienes
+    }
 }
 
 // -------- Reproducción con MCI ---------
@@ -158,7 +198,10 @@ void Album::mostrarCanciones() const {
 }
 
 void Album::siguienteFavorita() {
-    if (cantidadCanciones == 0) return;
+    if (cantidadCanciones == 0) {
+        cout << "⚠️ No hay canciones en el álbum." << endl;
+        return;
+    }
 
     int inicio = actual;
     do {
@@ -171,7 +214,6 @@ void Album::siguienteFavorita() {
 
     cout << "⚠️ No hay más canciones favoritas." << endl;
 }
-
 void Album::reproducirDesdeArchivo(const char* rutaTxt) {
     FILE* archivo = fopen(rutaTxt, "r");
     if (!archivo) {
@@ -213,3 +255,29 @@ void Album::reproducirDesdeArchivo(const char* rutaTxt) {
 
     cout << "\nReproducción desde archivo completada.\n";
 }
+
+void Album::cargarFavoritasUsuario(const char* rutaFavoritas) {
+    FILE* archivo = fopen(rutaFavoritas, "r");
+    if (!archivo) {
+        cout << "❌ No se pudo abrir: " << rutaFavoritas << endl;
+        return;
+    }
+
+    char buffer[512];
+    while (fgets(buffer, sizeof(buffer), archivo)) {
+        buffer[strcspn(buffer, "\r\n")] = 0; // eliminar salto de línea
+
+        // Extraer nombre de la canción de la ruta
+        const char* nombreArchivo = strrchr(buffer, '\\');
+        if (!nombreArchivo) nombreArchivo = buffer;
+        else nombreArchivo++; // saltar la barra
+
+        // Agregar la canción al álbum como favorita
+        agregarCancion(nombreArchivo, "Desconocido", buffer, 0.0f);
+        canciones[cantidadCanciones - 1]->marcarFavorita(true);
+    }
+
+    fclose(archivo);
+    actual = 0; // empezar desde la primera favorita
+}
+

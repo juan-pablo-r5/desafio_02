@@ -1,19 +1,25 @@
 #include "Album.h"
 #include <iostream>
 using namespace std;
+int opcion;
 
 int main() {
-    Album miAlbum("Rock Clasico", "Varios Artistas",
-                  "C:\\Users\\Manuu\\Documents\\spotify\\music_repository");
+    // Crear álbum vacío, solo se llenará con las favoritas
+    Album miAlbum("Favoritas del Usuario", "Varios Artistas", "");
 
-    miAlbum.reproducirDesdeArchivo("C:\\Users\\Manuu\\Documents\\spotify\\favoritas.txt");
-    cout << "\n1. Pausar\n2. Reanudar\n3. Siguiente Cancion\n0. Salir\n> ";
+    // Cargar las favoritas del usuario desde su archivo (con rutas completas)
+    miAlbum.cargarFavoritasUsuario("C:\\Users\\Manuu\\Documents\\spotify\\users\\user1\\favoritas.txt");
 
-    int opcion = -1;
+    // Empezar a reproducir la primera favorita
+    miAlbum.iniciarReproduccion();
+
+    // Menú simple para controlar reproducción
+
+    cout << "\n1. Pausar  2. Reanudar  3. Siguiente favorita  0. Salir\n> ";
     while (true) {
-
         if (!(cin >> opcion)) {
             cin.clear();
+            cin.ignore(1000,'\n');
             continue;
         }
 
@@ -25,6 +31,7 @@ int main() {
             cout << "👋 Saliendo del reproductor..." << endl;
             break;
         }
-}
+    }
+
     return 0;
 }

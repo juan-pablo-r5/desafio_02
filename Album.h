@@ -1,5 +1,7 @@
 #ifndef ALBUM_H
 #define ALBUM_H
+#include <vector>
+using namespace std;
 
 class Cancion {
 private:
@@ -30,6 +32,8 @@ private:
     Cancion** canciones;
     int cantidadCanciones;
     int actual; // índice de la canción actual
+    vector<Cancion*> favoritasUsuario;
+    int actualFavorita = -1;
 
 public:
     Album(const char* _nombre, const char* _artista, const char* _ruta);
@@ -38,6 +42,7 @@ public:
     void agregarCancion(const char* nombre, const char* artista, const char* ruta, float duracion);
 
     // Reproducción
+    void iniciarReproduccion(); // Inicia la reproduccion
     void reproducir();          // Reproduce la canción actual
     void pausar();              // Pausa la reproducción
     void reanudar();            // Reanuda la canción pausada
@@ -49,6 +54,7 @@ public:
 
     void reproducirDesdeArchivo(const char* rutaTxt); // Agrega canciones desde archivo y reproduce la primera
     void siguienteFavorita();
+    void cargarFavoritasUsuario(const char *rutaFavoritas);
 };
 
 #endif // ALBUM_H

@@ -28,6 +28,10 @@ add_executable(spotify
   main.cpp
   Album.cpp
   Album.h
+
+  users/user1/favoritas.txt
+  users/user1/playlist.txt
+  sudo.txt
 )
 
 # --- Enlazar Qt + SFML ---
