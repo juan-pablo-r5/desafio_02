@@ -16,6 +16,7 @@ Cancion::Cancion() {
     duracion = 0.0f;
     favorita = false;
 }
+
 Cancion::Cancion(const char* _nombre, const char* _artista, const char* _album, const char* _ruta, float _duracion) {
     nombre = new char[strlen(_nombre) + 1];
     strcpy(nombre, _nombre);
@@ -28,15 +29,18 @@ Cancion::Cancion(const char* _nombre, const char* _artista, const char* _album, 
     duracion = _duracion;
     favorita = false;
 }
+
 Cancion::~Cancion() {
     delete[] nombre;
     delete[] artista;
     delete[] album;
     delete[] ruta;
 }
+
 void Cancion::marcarFavorita(bool fav) {
     favorita = fav;
 }
+
 void Cancion::imprimirInfo() const {
     const char* n = (nombre) ? nombre : "(sin nombre)";
     const char* a = (artista) ? artista : "(artista desconocido)";
@@ -44,6 +48,7 @@ void Cancion::imprimirInfo() const {
     const char* rut = (ruta) ? ruta : "(portada desconocida)";
     cout << "Artista: " << a << " | Cancion: " << n << " | Album: " << al << " | Ruta: "<< rut << endl;
 }
+
 const char* Cancion::getNombre() const {
     static char info[512];
     imprimirInfo();
@@ -115,6 +120,7 @@ void Album::iniciarReproduccion(bool random) {
         // --- FIN DE LA LÓGICA CORREGIDA ---
     }
 }
+
 void Album::reproducir() {
     // (Sin cambios)
     if (cantidadCanciones == 0) {
@@ -198,6 +204,7 @@ void Album::reanudar() {
 void Album::detener() {
     estadoSimulado = DETENIDO;
 }
+
 void Album::mostrarCanciones() const {
     cout << "\n--- Lista de canciones del álbum: " << nombre << " ---" << endl;
     for (int i = 0; i < cantidadCanciones; i++) {
@@ -250,14 +257,34 @@ void Album::cargarCancionesDesdeTxt(const char* rutaFavoritas) {
     while (fgets(buffer, sizeof(buffer), archivo)) {
         buffer[strcspn(buffer, "\r\n")] = 0;
 
+        // --- INICIO DE LA COMPROBACIÓN IMPORTANTE ---
+        fs::path ruta_path(buffer);
+
+        // 1. ¡Comprobar si el archivo de audio EXISTE!
+        if (!fs::exists(ruta_path)) {
+            cout << "Advertencia: No se encontro el archivo de audio: " << buffer << endl;
+            continue; // Saltar a la siguiente línea del .txt
+        }
+
+        // 2. Comprobar que es un archivo y no una carpeta
+        if (!fs::is_regular_file(ruta_path)) {
+            cout << "Advertencia: La ruta no es un archivo: " << buffer << endl;
+            continue;
+        }
+        // --- FIN DE LA COMPROBACIÓN IMPORTANTE ---
+
+        // Si llegamos aquí, el .wav SÍ existe.
+        // Ahora el resto de la lógica (parseo, portadas) tiene sentido.
+
         char* nombreCancionParseado = nullptr;
         char* nombreArtistaParseado = nullptr;
         char* nombreAlbumParseado = nullptr;
-        char* rutaPortadaFinal = nullptr; //
+        char* rutaPortadaFinal = nullptr;
 
         try {
-            fs::path ruta_path(buffer);
+            // fs::path ruta_path(buffer); // (Ya lo hicimos arriba)
             std::string nombreCancionStd = ruta_path.stem().string();
+            // ... (el resto de tu lógica de parseo de nombres) ...
             nombreCancionParseado = new char[nombreCancionStd.length() + 1];
             strcpy(nombreCancionParseado, nombreCancionStd.c_str());
 
@@ -271,46 +298,31 @@ void Album::cargarCancionesDesdeTxt(const char* rutaFavoritas) {
             nombreArtistaParseado = new char[nombreArtistaStd.length() + 1];
             strcpy(nombreArtistaParseado, nombreArtistaStd.c_str());
 
-            std::string rutaPortadaStd = "Portada Desconocida"; // Valor por defecto
-
-            fs::path portadaCheck = album_path / "portada.png"; // 1. Buscar cover.png
+            // ... (el resto de tu lógica de buscar portada) ...
+            std::string rutaPortadaStd = "Portada Desconocida";
+            fs::path portadaCheck = album_path / "portada.png";
             if (fs::exists(portadaCheck)) {
                 rutaPortadaStd = portadaCheck.string();
             } else {
-                portadaCheck = album_path / "folder.png"; // 2. Buscar folder.png
+                portadaCheck = album_path / "folder.png";
                 if (fs::exists(portadaCheck)) {
                     rutaPortadaStd = portadaCheck.string();
                 } else {
-                    portadaCheck = album_path / "album.png"; // 3. Buscar album.png
+                    portadaCheck = album_path / "album.png";
                     if (fs::exists(portadaCheck)) {
                         rutaPortadaStd = portadaCheck.string();
                     }
                 }
             }
-
-            // Guardar la ruta final (sea la portada o el fallback)
             rutaPortadaFinal = new char[rutaPortadaStd.length() + 1];
             strcpy(rutaPortadaFinal, rutaPortadaStd.c_str());
 
         } catch (const fs::filesystem_error& e) {
-            const char* fallbackNombre = strrchr(buffer, '\\');
-            if (!fallbackNombre) fallbackNombre = buffer;
-            else fallbackNombre++;
-            nombreCancionParseado = new char[strlen(fallbackNombre) + 1];
-            strcpy(nombreCancionParseado, fallbackNombre);
-            nombreAlbumParseado = new char[strlen("Album Desconocido") + 1];
-            strcpy(nombreAlbumParseado, "Album Desconocido");
-            nombreArtistaParseado = new char[strlen("Artista Desconocido") + 1];
-            strcpy(nombreArtistaParseado, "Artista Desconocido");
-
-            // --- Fallback para la ruta de la portada ---
-            const char* fallbackRuta = "Portada Desconocida";
-            rutaPortadaFinal = new char[strlen(fallbackRuta) + 1];
-            strcpy(rutaPortadaFinal, fallbackRuta);
+            // ... (Tu fallback) ...
         }
 
         agregarCancion(nombreCancionParseado, nombreArtistaParseado, nombreAlbumParseado, rutaPortadaFinal, 0.0f);
-
+        // ... (Tu limpieza de delete[]) ...
         delete[] nombreCancionParseado;
         delete[] nombreArtistaParseado;
         delete[] nombreAlbumParseado;

@@ -20,7 +20,7 @@ int main() {
 
     Album miAlbum("Reproductor", "Varios Artistas", "");
 
-    cout << "Bienvenido a Spotify (simulado)" << endl;
+    cout << "Bienvenido a udeATunes" << endl;
     cout << "1. Cargar solo mi playlist de Favoritos" << endl;
     cout << "2. Cargar la Biblioteca Completa (music_repository)" << endl;
     cout << "> ";
