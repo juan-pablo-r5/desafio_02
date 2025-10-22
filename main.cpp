@@ -17,6 +17,7 @@ int main() {
     int opcionCarga = 0;
     int opcionMenu = 0;
     bool modeb = false; // false = Secuencial, true = Aleatorio
+    bool playlist = false;
 
     Album miAlbum("Reproductor", "Varios Artistas", "");
 
@@ -42,13 +43,14 @@ int main() {
         miAlbum.cargarBibliotecaCompleta("C:\\Users\\Manuu\\Documents\\spotify\\music_repository");
         cout << "\nCargando biblioteca en modo aleatorio.\n";
         modeb=true;
+        playlist=true;
     } else {
         cout << "Opcion invalida. Saliendo." << endl;
         return 1;
     }
 
 
-    miAlbum.iniciarReproduccion(modeb);
+    miAlbum.iniciarReproduccion(modeb,playlist);
 
     while (true) {
         cout << "\n------------------------------------------\n";
@@ -72,14 +74,13 @@ int main() {
         } else if (opcionMenu == 2) {
             miAlbum.reanudar();
         } else if (opcionMenu == 3) {
-            // ¡Solo llamamos a 'siguiente' y funciona para todo!
-            miAlbum.siguiente(modeb);
+            miAlbum.siguiente(modeb,playlist);
         } else if (opcionMenu == 4) {
-            miAlbum.anterior(modeb);
+            miAlbum.anterior(playlist);
         } else if (opcionMenu == 5) {
             cout << "\n...Simulando fin de cancion, pasando a la siguiente..." << endl;
             miAlbum.detener();
-            miAlbum.siguiente(modeb); // Igual aquí
+            miAlbum.siguiente(modeb,playlist); // Igual aquí
         } else if (opcionMenu == 0) {
             miAlbum.detener();
             cout << "Saliendo del reproductor..." << endl;

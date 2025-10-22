@@ -92,55 +92,67 @@ void Album::agregarCancion(const char* nombre, const char* artista, const char* 
     cantidadCanciones++;
 }
 
-void Album::iniciarReproduccion(bool random) {
+void Album::iniciarReproduccion(bool random, bool playlist) {
     if (cantidadCanciones == 0) {
         cout << "No hay canciones para iniciar." << endl;
         return;
     }
 
     if (!random) {
-        // MODO SECUENCIAL: Empezar en la primera
         actual = 0;
-        reproducir();
+        reproducir(playlist);
     } else {
-        // MODO ALEATORIO: Empezar en CUALQUIER canción aleatoria
-
-        // --- INICIO DE LA LÓGICA CORREGIDA ---
-
-        // (Toda la lógica de 'indicesFavoritas' se elimina)
 
         if (cantidadCanciones == 1) {
             actual = 0; // Solo hay una opción
         } else {
-            // Elegimos un índice aleatorio de CUALQUIER canción
-            actual = rand() % cantidadCanciones; // Elegir de 0 a (N-1)
+            actual = rand() % cantidadCanciones;
         }
 
-        reproducir();
+        reproducir(playlist);
         // --- FIN DE LA LÓGICA CORREGIDA ---
     }
 }
 
-void Album::reproducir() {
-    // (Sin cambios)
+void Album::reproducir(bool playlist) {
+    // 1. Declara la variable
+    int MAX_HISTORIAL;
+
     if (cantidadCanciones == 0) {
         cout << "No hay canciones para reproducir." << endl;
         return;
     }
     detener();
     estadoSimulado = REPRODUCIENDO;
-    int* nuevoHistorial = new int[tamHistorial + 1];
-    for (int i = 0; i < tamHistorial; ++i) {
-        nuevoHistorial[i] = historialReproduccion[i];
+
+    // 2. Asígnale el valor
+    if(!playlist){
+        MAX_HISTORIAL = 4;
     }
-    nuevoHistorial[tamHistorial] = actual;
-    delete[] historialReproduccion;
-    historialReproduccion = nuevoHistorial;
-    tamHistorial++;
+    else{
+        MAX_HISTORIAL = 6;
+    }
+
+    if (tamHistorial < MAX_HISTORIAL) {
+        int* nuevoHistorial = new int[tamHistorial + 1];
+        for (int i = 0; i < tamHistorial; ++i) {
+            nuevoHistorial[i] = historialReproduccion[i];
+        }
+        nuevoHistorial[tamHistorial] = actual;
+        delete[] historialReproduccion;
+        historialReproduccion = nuevoHistorial;
+        tamHistorial++;
+
+    } else {
+        for (int i = 0; i < MAX_HISTORIAL - 1; ++i) {
+            historialReproduccion[i] = historialReproduccion[i + 1];
+        }
+        historialReproduccion[MAX_HISTORIAL - 1] = actual; // Escribe en [5]
+    }
+
     cout << "Reproduciendo: ";
     canciones[actual]->imprimirInfo();
 }
-
 void Album::pausar() {
     // (Sin cambios)
     if (estadoSimulado == REPRODUCIENDO) {
@@ -152,14 +164,13 @@ void Album::pausar() {
     }
 }
 
-void Album::siguiente(bool random) {
+void Album::siguiente(bool random, bool playlist) {
     if (cantidadCanciones == 0) {
         cout << "No hay canciones en el álbum." << endl;
         return;
     }
 
     if (!random) {
-        // --- MODO SECUENCIAL (SIMPLIFICADO) ---
         int inicio = actual;
         actual = (actual + 1) % cantidadCanciones;
 
@@ -167,29 +178,22 @@ void Album::siguiente(bool random) {
             cout << "Fin de la lista." << endl;
         }
 
-        // Ya no hay 'if (esFavorita())', se reproduce directamente
-        reproducir();
-        // --- FIN ---
+        reproducir(playlist);
 
     } else {
-        // --- MODO ALEATORIO (MUY SIMPLIFICADO) ---
 
-        // Si solo hay 1 canción, no hagas nada (o repr., da igual)
         if (cantidadCanciones == 1) {
-            reproducir();
+            reproducir(playlist);
             return;
         }
 
-        // Ya no necesitamos construir 'indicesFavoritas'.
-        // Simplemente elegimos un índice aleatorio del total.
         int nuevoIndice;
         do {
-            nuevoIndice = rand() % cantidadCanciones; // Elegir de 0 a (N-1)
-        } while (nuevoIndice == actual); // Evitar repetir
+            nuevoIndice = rand() % cantidadCanciones;
+        } while (nuevoIndice == actual);
 
         actual = nuevoIndice;
-        reproducir();
-        // --- FIN ---
+        reproducir(playlist);
     }
 }
 
@@ -217,32 +221,24 @@ bool Album::estaReproduciendo() const {
     return estadoSimulado == REPRODUCIENDO;
 }
 
-void Album::anterior(bool random) {
+void Album::anterior(bool playlist) {
     if (cantidadCanciones == 0) {
-        cout << "No hay canciones en el álbum." << endl;
+        cout << "⚠️ No hay canciones en el álbum." << endl;
         return;
     }
 
-    if (!random) {
-        if (actual == 0) {
-            cout << "Ya estás en el inicio de la lista." << endl;
-            return; // No hacemos nada
-        }
-        actual--;
-        reproducir();
-
-    } else {
-        // (La lógica del modo aleatorio (historial) sigue igual)
-        if (tamHistorial < 2) {
-            cout << "No hay una canción anterior en el historial." << endl;
-            return;
-        }
-        tamHistorial--;
-        int indiceAnterior = historialReproduccion[tamHistorial - 1];
-        tamHistorial--;
-        actual = indiceAnterior;
-        reproducir();
+    if (tamHistorial < 2) {
+        cout << "No hay una canción anterior en el historial." << endl;
+        return;
     }
+
+    tamHistorial--;
+
+    int indiceAnterior = historialReproduccion[tamHistorial - 1];
+    tamHistorial--;
+
+    actual = indiceAnterior;
+    reproducir(playlist);
 }
 
 void Album::cargarCancionesDesdeTxt(const char* rutaFavoritas) {

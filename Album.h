@@ -53,17 +53,19 @@ public:
 
     // Reproducción
     void iniciarReproduccion(bool random);
-    void reproducir();
+    void reproducir(bool playlist);
     void pausar();
     void reanudar();
     void detener();
-    void siguiente(bool random);
+    void siguiente(bool random, bool playlist);
     void anterior(bool random);
 
     void mostrarCanciones() const;
     void cargarCancionesDesdeTxt(const char *rutaFavoritas);
     bool estaReproduciendo() const;
     void cargarBibliotecaCompleta(const char *rutaRepositorio);
+    void iniciarReproduccion(bool random, bool playlist);
+    void anterior(bool random, bool playlist);
 };
 
 #endif // ALBUM_H
