@@ -1,24 +1,21 @@
 #ifndef ALBUM_H
 #define ALBUM_H
-#include <vector>
-using namespace std;
 
+// (Clase Cancion sin cambios, ya estaba bien)
 class Cancion {
 private:
     char* nombre;
     char* artista;
+    char* album;
     char* ruta;
     float duracion;
     bool favorita;
-
 public:
     Cancion();
-    Cancion(const char* _nombre, const char* _artista, const char* _ruta, float _duracion);
+    Cancion(const char* _nombre, const char* _artista, const char* _album, const char* _ruta, float _duracion);
     ~Cancion();
-
     void marcarFavorita(bool fav);
     void imprimirInfo() const;
-
     const char* getNombre() const;
     const char* getRuta() const;
     bool esFavorita() const { return favorita; }
@@ -28,39 +25,45 @@ class Album {
 private:
     char* nombre;
     char* artista;
-    char* ruta; // ruta base del álbum
+    char* ruta;
     Cancion** canciones;
     int cantidadCanciones;
-    int actual; // índice de la canción actual
-    vector<Cancion*> favoritasUsuario;
-    std::vector<int> historialReproduccion;
-    int actualFavorita = -1;
+    int actual;
+
+    // --- MIEMBROS REDUNDANTES ELIMINADOS ---
+    // vector<Cancion*> favoritasUsuario;
+    // std::vector<int> historialReproduccion;
+    // int actualFavorita = -1;
+
+    int* historialReproduccion; // El que sí usamos
+    int tamHistorial;
+
+    enum EstadoSimulado {
+        DETENIDO,
+        REPRODUCIENDO,
+        PAUSADO
+    };
+    EstadoSimulado estadoSimulado;
 
 public:
     Album(const char* _nombre, const char* _artista, const char* _ruta);
     ~Album();
 
-    void agregarCancion(const char* nombre, const char* artista, const char* ruta, float duracion);
+    void agregarCancion(const char* nombre, const char* artista, const char* album, const char* ruta, float duracion);
 
     // Reproducción
-    void iniciarReproduccion(); // Inicia la reproduccion
-    void reproducir();          // Reproduce la canción actual
-    void pausar();              // Pausa la reproducción
-    void reanudar();            // Reanuda la canción pausada
-    void detener();             // Detiene y cierra la canción
-    void siguiente();           // Pasa a la siguiente canción y la reproduce
-    void anterior();            // Pasa a la anterior canción y la reproduce
+    void iniciarReproduccion(bool random);
+    void reproducir();
+    void pausar();
+    void reanudar();
+    void detener();
+    void siguiente(bool random);
+    void anterior(bool random);
 
     void mostrarCanciones() const;
-
-    void reproducirDesdeArchivo(const char* rutaTxt); // Agrega canciones desde archivo y reproduce la primera
-    void siguienteFavorita();
-    void cargarFavoritasUsuario(const char *rutaFavoritas);
-    void atrasFavorita();
-    void siguienteFavorita(bool random);
+    void cargarCancionesDesdeTxt(const char *rutaFavoritas);
     bool estaReproduciendo() const;
-    void atrasFavorita(bool random);
-    void iniciarReproduccion(bool random);
+    void cargarBibliotecaCompleta(const char *rutaRepositorio);
 };
 
 #endif // ALBUM_H

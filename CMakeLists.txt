@@ -19,9 +19,6 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 # o deja la línea comentada si estás en Linux con libsfml-dev
 set(SFML_DIR "C:\\Users\\Manuu\\Downloads\\SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit\\SFML-3.0.2\\lib\\cmake\\SFML")
 
-# Buscar SFML (solo audio y system)
-find_package(SFML 3 COMPONENTS Audio System REQUIRED)
-
 
 # --- Archivos de tu proyecto ---
 add_executable(spotify
