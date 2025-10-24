@@ -1,8 +1,8 @@
-/*
+
 #ifndef USUARIO_H
 #define USUARIO_H
 
-//#include "Album.h"
+#include "Album.h"
 #include <iostream>
 #include <cstring>
 using namespace std;
@@ -12,8 +12,6 @@ private:
     char* username;
     char* password;
     bool premiumStatus;
-    char* ciudad;
-    char* pais;
     char* fechaInscripcion;
     Cancion** favoritos;
     int cantidadFavoritos;
@@ -22,7 +20,7 @@ private:
 
 public:
     Usuario(const char* _username, const char* _password, bool _premium,
-            const char* _ciudad, const char* _pais, const char* _fecha);
+             const char* _fecha);
     ~Usuario();
 
     bool login(const char* user, const char* pass) const;
@@ -37,5 +35,5 @@ public:
     bool esPremium() const { return premiumStatus; }
 };
 
-#endif // USUARIO_H */
+#endif // USUARIO_H
 
