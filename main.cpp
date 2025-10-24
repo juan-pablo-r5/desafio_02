@@ -3,10 +3,10 @@
 #include <cstdlib>
 #include <ctime>
 #include <windows.h> // Para SetConsoleOutputCP
+#include <chrono>
+#include <thread>
 
 using namespace std;
-
-// (Asegúrate de tener 'cargarBibliotecaCompleta' en tu .h y .cpp)
 
 int main() {
     // Configuración inicial
@@ -18,6 +18,8 @@ int main() {
     int opcionMenu = 0;
     bool modeb = false; // false = Secuencial, true = Aleatorio
     bool playlist = false;
+
+
 
     Album miAlbum("Reproductor", "Varios Artistas", "");
 
@@ -50,7 +52,17 @@ int main() {
     }
 
 
-    miAlbum.iniciarReproduccion(modeb,playlist);
+    int modoOperacion = 0;
+    cout << "\n------------------------------------------\n";
+    cout << "Seleccione el modo de operacion:\n";
+    cout << "1. Modo Interactivo (control manual)\n";
+    cout << "2. Modo de Prueba Automatica (5 canciones, 3s cada una)\n";
+    cout << "> ";
+    cin >> modoOperacion;
+
+    if (modoOperacion == 1){
+        miAlbum.iniciarReproduccion(modeb,playlist);
+
 
     while (true) {
         cout << "\n------------------------------------------\n";
@@ -87,6 +99,31 @@ int main() {
             break;
         }
     }
+    }
+    else if (modoOperacion == 2){
+        const int K = 5; // Número de canciones a reproducir
+        const int segundosEspera = 3;
+        cout << "\nIniciando prueba automatica..." << endl;
+        cout << "Se reproduciran " << K << " canciones, cambiando cada " << segundosEspera << " segundos." << endl;
+        miAlbum.iniciarReproduccion(modeb,playlist);
+        for (int i = 1; i < K; ++i) {
+            cout << "\n(" << i << "/" << K-1 << ") Esperando " << segundosEspera << " segundos..." << endl;
+
+            // Pausa la ejecución por 3 segundos
+            std::this_thread::sleep_for(std::chrono::seconds(segundosEspera));
+
+            cout << "[Temporizador] Cambiando a la siguiente cancion..." << endl;
+            miAlbum.siguiente(modeb,playlist);; // Cambia de canción
+        }
+
+        cout << "\nPrueba finalizada. Se han reproducido " << K << " canciones. Deteniendo..." << endl;
+        miAlbum.detener();
+    }
+
+    else {
+        cout << "Opcion invalida. Saliendo." << endl;
+    }
 
     return 0;
 }
+
