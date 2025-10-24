@@ -1,4 +1,4 @@
-// Usuario.cpp
+/*Usuario.cpp
 #include "Usuario.h"
 
 Usuario::Usuario(const char* _username, const char* _password, bool _premium,
@@ -9,7 +9,7 @@ Usuario::Usuario(const char* _username, const char* _password, bool _premium,
     ciudad = strdup(_ciudad);
     pais = strdup(_pais);
     fechaInscripcion = strdup(_fecha);
-    favoritos = new Cancion*[maxFavoritos];
+    //favoritos = new Cancion*[maxFavoritos];
 }
 
 Usuario::~Usuario() {
@@ -18,7 +18,7 @@ Usuario::~Usuario() {
     delete[] ciudad;
     delete[] pais;
     delete[] fechaInscripcion;
-    delete[] favoritos;
+    //delete[] favoritos;
 }
 
 bool Usuario::login(const char* user, const char* pass) const {
@@ -78,4 +78,4 @@ void Usuario::imprimirFavoritos() const {
         favoritos[i]->imprimirInfo();
     }
 }
-
+*/

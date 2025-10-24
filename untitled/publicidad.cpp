@@ -20,7 +20,7 @@ Publicidad::~Publicidad() {
 
 void Publicidad::imprimirPublicidad() const {
     cout << "\n--- PUBLICIDAD ---\n";
-    cout << "Tipo: " << tipo << " | Duración: " << duracion << " seg\n";
+    cout << "Tipo: " << tipo << " | Duracion: " << duracion << " seg\n";
     cout << "Mensaje: " << mensaje << "\n";
 }
 

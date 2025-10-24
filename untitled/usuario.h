@@ -1,4 +1,4 @@
-// Usuario.h
+/*
 #ifndef USUARIO_H
 #define USUARIO_H
 
@@ -37,5 +37,5 @@ public:
     bool esPremium() const { return premiumStatus; }
 };
 
-#endif // USUARIO_H
+#endif // USUARIO_H */
 
