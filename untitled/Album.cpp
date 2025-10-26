@@ -55,6 +55,12 @@ const char* Cancion::getNombre() const {
     return info;
 }
 
+
+const char* Cancion::getRuta() const {
+    return ruta;
+}
+
+
 // -------- Clase Album ---------
 Album::Album(const char* _nombre, const char* _artista, const char* _ruta) {
     nombre = new char[strlen(_nombre) + 1];

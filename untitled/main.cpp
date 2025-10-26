@@ -1,4 +1,5 @@
 #include "Album.h"
+#include "Usuario.h"
 #include <iostream>
 #include <cstdlib>
 #include <ctime>

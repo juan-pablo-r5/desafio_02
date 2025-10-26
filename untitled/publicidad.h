@@ -3,15 +3,17 @@
 #define PUBLICIDAD_H
 
 #include <iostream>
+#include <fstream>
 #include <cstring>
+#include <string>
 using namespace std;
 
 class Publicidad {
 private:
-    char* tipo;      // "C", "B", "AAA"
-    int duracion;    // segundos
+    char* tipo;
+    int duracion;
     char* mensaje;
-    int prioridad;   // 1x, 2x, 3x
+    int prioridad;
 
 public:
     Publicidad(const char* _tipo, int _duracion, const char* _mensaje);
@@ -20,7 +22,9 @@ public:
     void imprimirPublicidad() const;
     int getPrioridad() const { return prioridad; }
     const char* getMensaje() const { return mensaje; }
+
+    // --- Nuevo método estático ---
+    static int cargarDesdeArchivo(const char* ruta, Publicidad** lista, int maxPublicidades);
 };
 
-#endif // PUBLICIDAD_H
-
+#endif
