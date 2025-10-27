@@ -1,26 +1,33 @@
 #ifndef ALBUM_H
 #define ALBUM_H
 
-// (Clase Cancion sin cambios, ya estaba bien)
+#include <vector> // Necesario para el historial y simplificaciones futuras
+
+// --- CLASE CANCION (AÑADIMOS MÉTODO DE MEMORIA) ---
 class Cancion {
 private:
     char* nombre;
     char* artista;
     char* album;
-    char* ruta;
+    char* ruta; // Asumo que esta es la ruta de la PORTADA
     float duracion;
     bool favorita;
 public:
     Cancion();
     Cancion(const char* _nombre, const char* _artista, const char* _album, const char* _ruta, float _duracion);
     ~Cancion();
+
     void marcarFavorita(bool fav);
     void imprimirInfo() const;
-    const char* getNombre() const;
-    const char* getRuta() const;
+    const char* getRuta() const; // Asumo que esto debería devolver la RUTA DEL AUDIO, no de la portada
     bool esFavorita() const { return favorita; }
+
+    // --- NUEVA FUNCIÓN PARA MÉTRICAS ---
+    size_t getMemoriaConsumida() const;
 };
 
+
+// --- CLASE ALBUM (ACTUALIZADA PARA MÉTRICAS) ---
 class Album {
 private:
     char* nombre;
@@ -30,19 +37,10 @@ private:
     int cantidadCanciones;
     int actual;
 
-    // --- MIEMBROS REDUNDANTES ELIMINADOS ---
-    // vector<Cancion*> favoritasUsuario;
-    // std::vector<int> historialReproduccion;
-    // int actualFavorita = -1;
-
-    int* historialReproduccion; // El que sí usamos
+    int* historialReproduccion; // <-- AÑADIR ESTO
     int tamHistorial;
 
-    enum EstadoSimulado {
-        DETENIDO,
-        REPRODUCIENDO,
-        PAUSADO
-    };
+    enum EstadoSimulado { DETENIDO, REPRODUCIENDO, PAUSADO };
     EstadoSimulado estadoSimulado;
 
 public:
@@ -51,21 +49,25 @@ public:
 
     void agregarCancion(const char* nombre, const char* artista, const char* album, const char* ruta, float duracion);
 
-    // Reproducción
-    void iniciarReproduccion(bool random);
-    void reproducir(bool playlist);
+    // --- FUNCIONES DE REPRODUCCIÓN (MODIFICADAS PARA MÉTRICAS) ---
+    void iniciarReproduccion(bool random, bool playlist); // Se queda igual, llama a reproducir
+    void reproducir(bool playlist); // Interna, no necesita contador
     void pausar();
     void reanudar();
     void detener();
-    void siguiente(bool random, bool playlist);
-    void anterior(bool random);
+
+    // Firmas actualizadas para aceptar el contador de iteraciones
+    void siguiente(bool random, bool playlist, long long& iteraciones);
+    void anterior(bool playlist, long long& iteraciones);
+
+    // --- FUNCIONES DE CARGA (MODIFICADAS PARA MÉTRICAS) ---
+    void cargarCancionesDesdeTxt(const char* rutaFavoritas, long long& iteraciones);
+    void cargarBibliotecaCompleta(const char* rutaRepositorio, long long& iteraciones);
 
     void mostrarCanciones() const;
-    void cargarCancionesDesdeTxt(const char *rutaFavoritas);
-    bool estaReproduciendo() const;
-    void cargarBibliotecaCompleta(const char *rutaRepositorio);
-    void iniciarReproduccion(bool random, bool playlist);
-    void anterior(bool random, bool playlist);
+
+    // --- NUEVA FUNCIÓN PARA MÉTRICAS ---
+    size_t getMemoriaConsumida() const;
 };
 
 #endif // ALBUM_H

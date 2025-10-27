@@ -49,11 +49,16 @@ void Cancion::imprimirInfo() const {
     cout << "Artista: " << a << " | Cancion: " << n << " | Album: " << al << " | Ruta: "<< rut << endl;
 }
 
-const char* Cancion::getNombre() const {
-    static char info[512];
-    imprimirInfo();
-    return info;
+size_t Cancion::getMemoriaConsumida() const {
+    size_t memoria = sizeof(Cancion); // Tamaño de los miembros fijos (punteros, float, bool)
+    if (nombre) memoria += strlen(nombre) + 1; // +1 por el carácter nulo '\0'
+    if (artista) memoria += strlen(artista) + 1;
+    if (album) memoria += strlen(album) + 1;
+    if (ruta) memoria += strlen(ruta) + 1;
+    return memoria;
 }
+
+
 
 // -------- Clase Album ---------
 Album::Album(const char* _nombre, const char* _artista, const char* _ruta) {
@@ -76,10 +81,10 @@ Album::~Album() {
     for (int i = 0; i < cantidadCanciones; i++)
         delete canciones[i];
     delete[] canciones;
-    delete[] historialReproduccion;
     delete[] nombre;
     delete[] artista;
     delete[] ruta;
+    delete[] historialReproduccion;
 }
 
 void Album::agregarCancion(const char* nombre, const char* artista, const char* album, const char* ruta, float duracion) {
@@ -90,6 +95,32 @@ void Album::agregarCancion(const char* nombre, const char* artista, const char* 
     delete[] canciones;
     canciones = nuevo;
     cantidadCanciones++;
+}
+
+size_t Album::getMemoriaConsumida() const {
+    size_t memoria = sizeof(Album); // Tamaño de los miembros fijos del álbum
+    if (nombre) memoria += strlen(nombre) + 1;
+    if (artista) memoria += strlen(artista) + 1;
+    if (ruta) memoria += strlen(ruta) + 1;
+
+    // Sumar la memoria del array de punteros a canciones
+    if (canciones) {
+        memoria += cantidadCanciones * sizeof(Cancion*);
+    }
+
+    // Sumar la memoria de CADA objeto Cancion individualmente
+    for (int i = 0; i < cantidadCanciones; ++i) {
+        if (canciones[i]) {
+            memoria += canciones[i]->getMemoriaConsumida();
+        }
+    }
+
+    // Sumar la memoria del historial
+    if (historialReproduccion) {
+        memoria += tamHistorial * sizeof(int);
+    }
+
+    return memoria;
 }
 
 void Album::iniciarReproduccion(bool random, bool playlist) {
@@ -115,44 +146,37 @@ void Album::iniciarReproduccion(bool random, bool playlist) {
 }
 
 void Album::reproducir(bool playlist) {
-    // 1. Declara la variable
-    int MAX_HISTORIAL;
+    if (cantidadCanciones == 0) { /* ... */ return; }
 
-    if (cantidadCanciones == 0) {
-        cout << "No hay canciones para reproducir." << endl;
-        return;
-    }
     detener();
     estadoSimulado = REPRODUCIENDO;
 
-    // 2. Asígnale el valor
-    if(!playlist){
-        MAX_HISTORIAL = 4;
-    }
-    else{
-        MAX_HISTORIAL = 6;
-    }
+    const int MAX_HISTORIAL = playlist ? 6 : 4;
 
+    // Lógica para manejar el historial con un array dinámico
     if (tamHistorial < MAX_HISTORIAL) {
+        // Si hay espacio, creamos un nuevo array más grande
         int* nuevoHistorial = new int[tamHistorial + 1];
         for (int i = 0; i < tamHistorial; ++i) {
             nuevoHistorial[i] = historialReproduccion[i];
         }
-        nuevoHistorial[tamHistorial] = actual;
         delete[] historialReproduccion;
         historialReproduccion = nuevoHistorial;
+        historialReproduccion[tamHistorial] = actual;
         tamHistorial++;
-
     } else {
+        // Si está lleno, deslizamos los elementos hacia la izquierda
         for (int i = 0; i < MAX_HISTORIAL - 1; ++i) {
             historialReproduccion[i] = historialReproduccion[i + 1];
         }
-        historialReproduccion[MAX_HISTORIAL - 1] = actual; // Escribe en [5]
+        // Y añadimos el nuevo al final
+        historialReproduccion[MAX_HISTORIAL - 1] = actual;
     }
 
     cout << "Reproduciendo: ";
     canciones[actual]->imprimirInfo();
 }
+
 void Album::pausar() {
     // (Sin cambios)
     if (estadoSimulado == REPRODUCIENDO) {
@@ -164,34 +188,23 @@ void Album::pausar() {
     }
 }
 
-void Album::siguiente(bool random, bool playlist) {
-    if (cantidadCanciones == 0) {
-        cout << "No hay canciones en el álbum." << endl;
-        return;
-    }
+void Album::siguiente(bool random, bool playlist, long long& iteraciones) {
+    if (cantidadCanciones == 0) return;
 
     if (!random) {
-        int inicio = actual;
+        iteraciones++; // Cuenta como una operación/iteración
         actual = (actual + 1) % cantidadCanciones;
-
-        if (actual == inicio && cantidadCanciones > 1) {
-            cout << "Fin de la lista." << endl;
-        }
-
         reproducir(playlist);
-
     } else {
-
         if (cantidadCanciones == 1) {
             reproducir(playlist);
             return;
         }
-
         int nuevoIndice;
         do {
+            iteraciones++; // <-- INCREMENTAMOS DENTRO DEL BUCLE
             nuevoIndice = rand() % cantidadCanciones;
         } while (nuevoIndice == actual);
-
         actual = nuevoIndice;
         reproducir(playlist);
     }
@@ -217,125 +230,79 @@ void Album::mostrarCanciones() const {
     }
 }
 
-bool Album::estaReproduciendo() const {
-    return estadoSimulado == REPRODUCIENDO;
-}
 
-void Album::anterior(bool playlist) {
-    if (cantidadCanciones == 0) {
-        cout << "⚠️ No hay canciones en el álbum." << endl;
-        return;
-    }
-
+void Album::anterior(bool playlist, long long& iteraciones) {
     if (tamHistorial < 2) {
-        cout << "No hay una canción anterior en el historial." << endl;
+        cout << "No hay una cancion anterior en el historial." << endl;
         return;
     }
+    iteraciones++;
 
-    tamHistorial--;
+    // La canción actual es la última del historial. La anterior es la penúltima.
+    int indiceAnterior = historialReproduccion[tamHistorial - 2];
 
-    int indiceAnterior = historialReproduccion[tamHistorial - 1];
-    tamHistorial--;
+    // Reducimos el tamaño del historial en 2 para eliminar la actual y la anterior,
+    // ya que 'reproducir' volverá a añadir la nueva canción actual.
+    tamHistorial -= 2;
 
     actual = indiceAnterior;
     reproducir(playlist);
 }
 
-void Album::cargarCancionesDesdeTxt(const char* rutaFavoritas) {
+void Album::cargarCancionesDesdeTxt(const char* rutaFavoritas, long long& iteraciones) {
     FILE* archivo = fopen(rutaFavoritas, "r");
-    if (!archivo) {
-        cout << "No se pudo abrir: " << rutaFavoritas << endl;
-        return;
-    }
+    if (!archivo) { /* ... */ return; }
 
-    char buffer[512];
-
+    char buffer[512]; // La ruta completa leída del archivo
     while (fgets(buffer, sizeof(buffer), archivo)) {
-        buffer[strcspn(buffer, "\r\n")] = 0;
+        iteraciones++;
+        buffer[strcspn(buffer, "\r\n")] = 0; // Limpiar saltos de línea
 
-        // --- INICIO DE LA COMPROBACIÓN IMPORTANTE ---
-        fs::path ruta_path(buffer);
+        char temp[512];
+        strcpy(temp, buffer); // Copiamos para poder modificarla
 
-        // 1. ¡Comprobar si el archivo de audio EXISTE!
-        if (!fs::exists(ruta_path)) {
-            cout << "Advertencia: No se encontro el archivo de audio: " << buffer << endl;
-            continue; // Saltar a la siguiente línea del .txt
+        // Extraer nombre de la canción
+        char nombreCancion[128] = "Desconocido";
+        char* p = strrchr(temp, '\\');
+        if (p) {
+            strcpy(nombreCancion, p + 1);
+            char* dot = strrchr(nombreCancion, '.');
+            if (dot) *dot = '\0'; // Quitar extensión
+            *p = '\0'; // Cortar la cadena 'temp'
         }
 
-        // 2. Comprobar que es un archivo y no una carpeta
-        if (!fs::is_regular_file(ruta_path)) {
-            cout << "Advertencia: La ruta no es un archivo: " << buffer << endl;
-            continue;
-        }
-        // --- FIN DE LA COMPROBACIÓN IMPORTANTE ---
-
-        // Si llegamos aquí, el .wav SÍ existe.
-        // Ahora el resto de la lógica (parseo, portadas) tiene sentido.
-
-        char* nombreCancionParseado = nullptr;
-        char* nombreArtistaParseado = nullptr;
-        char* nombreAlbumParseado = nullptr;
-        char* rutaPortadaFinal = nullptr;
-
-        try {
-            // fs::path ruta_path(buffer); // (Ya lo hicimos arriba)
-            std::string nombreCancionStd = ruta_path.stem().string();
-            // ... (el resto de tu lógica de parseo de nombres) ...
-            nombreCancionParseado = new char[nombreCancionStd.length() + 1];
-            strcpy(nombreCancionParseado, nombreCancionStd.c_str());
-
-            fs::path album_path = ruta_path.parent_path();
-            std::string nombreAlbumStd = album_path.filename().string();
-            nombreAlbumParseado = new char[nombreAlbumStd.length() + 1];
-            strcpy(nombreAlbumParseado, nombreAlbumStd.c_str());
-
-            fs::path artista_path = album_path.parent_path();
-            std::string nombreArtistaStd = artista_path.filename().string();
-            nombreArtistaParseado = new char[nombreArtistaStd.length() + 1];
-            strcpy(nombreArtistaParseado, nombreArtistaStd.c_str());
-
-            // ... (el resto de tu lógica de buscar portada) ...
-            std::string rutaPortadaStd = "Portada Desconocida";
-            fs::path portadaCheck = album_path / "portada.png";
-            if (fs::exists(portadaCheck)) {
-                rutaPortadaStd = portadaCheck.string();
-            } else {
-                portadaCheck = album_path / "folder.png";
-                if (fs::exists(portadaCheck)) {
-                    rutaPortadaStd = portadaCheck.string();
-                } else {
-                    portadaCheck = album_path / "album.png";
-                    if (fs::exists(portadaCheck)) {
-                        rutaPortadaStd = portadaCheck.string();
-                    }
-                }
-            }
-            rutaPortadaFinal = new char[rutaPortadaStd.length() + 1];
-            strcpy(rutaPortadaFinal, rutaPortadaStd.c_str());
-
-        } catch (const fs::filesystem_error& e) {
-            // ... (Tu fallback) ...
+        // Extraer nombre del álbum
+        char nombreAlbum[128] = "Desconocido";
+        p = strrchr(temp, '\\');
+        if (p) {
+            strcpy(nombreAlbum, p + 1);
+            *p = '\0'; // Cortar de nuevo
         }
 
-        agregarCancion(nombreCancionParseado, nombreArtistaParseado, nombreAlbumParseado, rutaPortadaFinal, 0.0f);
-        // ... (Tu limpieza de delete[]) ...
-        delete[] nombreCancionParseado;
-        delete[] nombreArtistaParseado;
-        delete[] nombreAlbumParseado;
-        delete[] rutaPortadaFinal;
+        // Lo que queda es el artista
+        char nombreArtista[128] = "Desconocido";
+        p = strrchr(temp, '\\');
+        if (p) {
+            strcpy(nombreArtista, p + 1);
+        }
 
+        // La ruta de la portada es un placeholder
+        const char* rutaPortada = "Portada Desconocida";
+
+        // buffer contiene la ruta original del archivo de audio, la usamos para la canción
+        agregarCancion(nombreCancion, nombreArtista, nombreAlbum, rutaPortada, 0.0f);
         canciones[cantidadCanciones - 1]->marcarFavorita(true);
     }
     fclose(archivo);
-    actual = 0;
 }
 
-void Album::cargarBibliotecaCompleta(const char* rutaRepositorio) {
+void Album::cargarBibliotecaCompleta(const char* rutaRepositorio, long long& iteraciones) {
     cout << "Escaneando la biblioteca completa (esto puede tardar)..." << endl;
 
     try {
         // Itera recursivamente por todas las carpetas y subcarpetas
         for (const auto& entry : fs::recursive_directory_iterator(rutaRepositorio)) {
+            iteraciones++;
 
             // Comprueba si es un archivo regular
             if (entry.is_regular_file()) {
@@ -426,3 +393,6 @@ void Album::cargarBibliotecaCompleta(const char* rutaRepositorio) {
 
     cout << "Escaneo completo. Se cargaron " << cantidadCanciones << " canciones." << endl;
 }
+
+
+
