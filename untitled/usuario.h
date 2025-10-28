@@ -14,7 +14,6 @@ private:
     char* username;
     char* password;
     bool premiumStatus;
-    char* fechaInscripcion;
     char* rutaUsuario; // Carpeta del usuario
     Cancion** favoritos;
     int cantidadFavoritos;

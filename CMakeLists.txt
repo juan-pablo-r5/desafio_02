@@ -29,6 +29,8 @@ add_executable(spotify
   users/user1/favoritas.txt
   users/user1/playlist.txt
   sudo.txt
+  usuario.cpp usuario.h
+  publicidad.cpp publicidad.h
 )
 
 # --- Enlazar Qt + SFML ---

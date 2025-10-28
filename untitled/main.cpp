@@ -1,5 +1,4 @@
 #include "Album.h"
-#include "Usuario.h"
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -128,100 +127,104 @@ int main() {
     return 0;
 }
 /*
+#include "Usuario.h"
+#include "Album.h"
+
 #include "Publicidad.h"
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include <string>
+#include <thread>
+#include <chrono>
 using namespace std;
+
 const int MAX_PUBLICIDADES = 50;
-// Selecciona publicidad ponderada según prioridad (1,2,3) sin repetir consecutiva
-Publicidad* seleccionarPublicidad(Publicidad** lista, int cantidad, Publicidad* ultima){
-    if (cantidad == 0)
-        return nullptr;
+
+// Selecciona publicidad ponderada por prioridad (1,2,3)
+Publicidad* seleccionarPublicidad(Publicidad** lista, int cantidad, Publicidad* ultima) {
+    if (cantidad == 0) return nullptr;
     int totalPeso = 0;
     for (int i = 0; i < cantidad; ++i)
-        totalPeso += lista[i]->getPrioridad(); Publicidad* seleccion = nullptr;
-    do { int random = rand() % totalPeso;
+        totalPeso += lista[i]->getPrioridad();
+
+    Publicidad* seleccion = nullptr;
+    do {
+        int random = rand() % totalPeso;
         int acumulado = 0;
         for (int i = 0; i < cantidad; ++i) {
             acumulado += lista[i]->getPrioridad();
-            if (random < acumulado) { seleccion = lista[i];
+            if (random < acumulado) {
+                seleccion = lista[i];
                 break;
             }
         }
     } while (seleccion == ultima && cantidad > 1);
     return seleccion;
 }
+
 int main() {
+
+    const char* base = "C:\\Users\\Usuario\\Documents\\spotify\\users";
+
+    Usuario user1("user1", "1234", true, "2025-10-20", base);
+    Usuario user3("user3", "abcd", false, "2025-10-21", base);
+
+    user1.cargarFavoritos();
+    user3.cargarFavoritos();
+
+    cout << "\n=== AGREGAR FAVORITOS ===\n";
+    user1.agregarFavorito("C:\\Users\\Usuario\\Documents\\spotify\\music_repository\\artist1\\album1\\song1.wav");
+
+    cout << "\n=== FAVORITOS USER1 ===\n";
+    user1.imprimirFavoritos();
+
+    cout << "\n=== USER1 SIGUE A USER3 ===\n";
+    user1.seguirListaFavoritos(&user3);
+
+    cout << "\n=== NUEVA LISTA USER1 ===\n";
+    user1.imprimirFavoritos();
+
     srand(time(NULL));
-    Publicidad** lista = new Publicidad*[MAX_PUBLICIDADES];
-    int cantidad = 0;
+    Publicidad** listaPublicidades = new Publicidad*[MAX_PUBLICIDADES];
+    int cantidadPublicidades = 0;
     Publicidad* ultima = nullptr;
-    int opcion = 0;
 
-    do {
-        cout << "\n=== GESTOR DE PUBLICIDAD UdeATunes ===\n";
-        cout << "1. Agregar publicidad\n";
-        cout << "2. Mostrar una publicidad aleatoria (ponderada)\n";
-        cout << "3. Mostrar todas las publicidades cargadas\n";
-        cout << "0. Salir\n> ";
-        cin >> opcion;
-        cin.ignore();
+    // Cargar publicidades desde archivo
+    cantidadPublicidades = Publicidad::cargarDesdeArchivo("publicidades.txt", listaPublicidades, MAX_PUBLICIDADES);
+    if (cantidadPublicidades == 0) {
+        cout << "No se cargaron publicidades. Verifica el archivo.\n";
+        return 1;
+    }
 
-        if (opcion == 1) {
-            if (cantidad >= MAX_PUBLICIDADES) {
-                cout << " Límite máximo de 50 publicidades alcanzado.\n";
-                continue;
-            }
+    cout << "\n=== SIMULADOR DE PUBLICIDAD UDEATUNES ===\n";
+    bool esPremium;
+    cout << "¿Eres usuario premium? (1 = Si, 0 = No): ";
+    cin >> esPremium;
 
-            string tipo, mensaje;
-            int duracion;
+    int canciones = 0;
+    int totalCanciones = 6;
+    cout << "\nReproduciendo " << totalCanciones << " canciones simuladas...\n";
 
-            cout << "Tipo de publicidad (C / B / AAA): ";
-            getline(cin, tipo);
-            cout << "Duración (segundos): ";
-            cin >> duracion;
-            cin.ignore();
-            cout << "Mensaje (máx 500 caracteres): ";
-            getline(cin, mensaje);
+    for (int i = 1; i <= totalCanciones; ++i) {
+        cout << "\n Reproduciendo canci0n " << i << "...\n";
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
-            lista[cantidad++] = new Publicidad(tipo.c_str(), duracion, mensaje.c_str());
-            cout << " Publicidad agregada correctamente.\n";
-        }
-        else if (opcion == 2) {
-            if (cantidad == 0) {
-                cout << " No hay publicidades cargadas.\n";
-                continue;
-            }
-
-            Publicidad* seleccionada = seleccionarPublicidad(lista, cantidad, ultima);
+        if (!esPremium && i % 2 == 0) {  // Cada 2 canciones, publicidad
+            cout << "\nMostrando publicidad (" << i / 2 << ")\n";
+            Publicidad* seleccionada = seleccionarPublicidad(listaPublicidades, cantidadPublicidades, ultima);
             if (seleccionada) {
                 seleccionada->imprimirPublicidad();
                 ultima = seleccionada;
             }
         }
-        else if (opcion == 3) {
-            cout << "\n--- LISTA DE PUBLICIDADES ---\n";
-            if (cantidad == 0) {
-                cout << "No hay publicidades registradas.\n";
-                continue;
-            }
-            for (int i = 0; i < cantidad; ++i) {
-                cout << i + 1 << ". ";
-                lista[i]->imprimirPublicidad();
-            }
-        }
+    }
 
-    } while (opcion != 0);
+    cout << "\n Fin de la reproduccion.\n";
 
-    // Liberar memoria
-    for (int i = 0; i < cantidad; ++i)
-        delete lista[i];
-    delete[] lista;
+    for (int i = 0; i < cantidadPublicidades; ++i)
+        delete listaPublicidades[i];
+    delete[] listaPublicidades;
 
-    cout << "\nPrograma finalizado correctamente.\n";
     return 0;
-}
-
-*/
+}*/

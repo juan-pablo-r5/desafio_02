@@ -2,6 +2,7 @@
 #define ALBUM_H
 
 #include <vector> // Necesario para el historial y simplificaciones futuras
+#include <cstdlib>
 
 // --- CLASE CANCION (AÑADIMOS MÉTODO DE MEMORIA) ---
 class Cancion {
@@ -19,7 +20,9 @@ public:
 
     void marcarFavorita(bool fav);
     void imprimirInfo() const;
-    const char* getRuta() const; // Asumo que esto debería devolver la RUTA DEL AUDIO, no de la portada
+    const char* getNombre() const;
+    const char* getRuta() const;// Asumo que esto debería devolver la RUTA DEL AUDIO, no de la portada
+
     bool esFavorita() const { return favorita; }
 
     // --- NUEVA FUNCIÓN PARA MÉTRICAS ---

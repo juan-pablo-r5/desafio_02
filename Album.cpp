@@ -41,6 +41,18 @@ void Cancion::marcarFavorita(bool fav) {
     favorita = fav;
 }
 
+const char* Cancion::getNombre() const {
+    static char info[512];
+    imprimirInfo();
+    return info;
+}
+
+
+const char* Cancion::getRuta() const {
+    return ruta;
+}
+
+
 void Cancion::imprimirInfo() const {
     const char* n = (nombre) ? nombre : "(sin nombre)";
     const char* a = (artista) ? artista : "(artista desconocido)";

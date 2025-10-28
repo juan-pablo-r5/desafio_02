@@ -1,0 +1,20 @@
+AAA;10;Disfruta de la mejor experiencia en audio con UdeATunes Premium.
+B;8;Promoción: 2x1 en audífonos inalámbricos.
+C;5;Descubre nuevas canciones cada día con UdeATunes.
+AAA;12;Siente la música sin interrupciones con UdeATunes Premium.
+B;9;Cambia tus viejos audífonos por unos nuevos con 30% de descuento.
+C;6;Escucha playlists seleccionadas por expertos musicales.
+AAA;10;UdeATunes Premium: sin límites, sin anuncios, pura música.
+B;7;Compra tus entradas para el concierto de tu artista favorito.
+C;5;Nuevos lanzamientos cada semana en todas las categorías.
+AAA;15;Audio 320kbps exclusivo para nuestros usuarios Premium.
+B;8;Participa en sorteos exclusivos por ser parte de UdeATunes.
+C;6;Reproduce música sin parar y descubre artistas emergentes.
+AAA;10;Mejora tu día con el mejor sonido: hazte Premium.
+B;8;Viaja al ritmo de tus canciones con nuestros playlists recomendados.
+C;5;Comparte tus canciones favoritas con tus amigos.
+AAA;12;Tu música, sin interrupciones: UdeATunes Premium.
+B;9;Obtén acceso anticipado a nuevas canciones y álbumes.
+C;6;Descubre lo que todos están escuchando hoy.
+AAA;14;Sonido envolvente de alta fidelidad con UdeATunes Premium.
+C;5;Tu día, tu música, tu plataforma: UdeATunes.

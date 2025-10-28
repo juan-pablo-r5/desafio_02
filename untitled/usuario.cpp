@@ -1,12 +1,11 @@
 #include "Usuario.h"
 
 Usuario::Usuario(const char* _username, const char* _password, bool _premium,
-                 const char* _fecha, const char* _rutaBase)
+               const char* _rutaBase)
     : premiumStatus(_premium), cantidadFavoritos(0), maxFavoritos(10000), siguiendo(nullptr) {
 
     username = strdup(_username);
     password = strdup(_password);
-    fechaInscripcion = strdup(_fecha);
     favoritos = new Cancion*[maxFavoritos];
 
     // Crear carpeta del usuario si no existe
@@ -73,15 +72,15 @@ void Usuario::eliminarFavorito(const char* nombreCancion) {
             favoritos[i] = favoritos[cantidadFavoritos - 1];
             cantidadFavoritos--;
             guardarFavoritos();
-            cout << " Canción eliminada de favoritos.\n";
+            cout << " Cancion eliminada de favoritos.\n";
             return;
         }
     }
-    cout << " Canción no encontrada.\n";
+    cout << " Cancion no encontrada.\n";
 }
 
 void Usuario::imprimirFavoritos() const {
-    cout << "\n🎵 Lista de favoritos de " << username << ":\n";
+    cout << "\nLista de favoritos de " << username << ":\n";
     if (cantidadFavoritos == 0) {
         cout << "(Vacia)\n";
         return;
